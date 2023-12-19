@@ -5,7 +5,6 @@
 *.slo
 *.lo
 *.o
-*.obj
 *.vs
 
 # Precompiled Headers
@@ -32,3 +31,4 @@
 *.out
 *.app
 test/build
+benchmark/build
