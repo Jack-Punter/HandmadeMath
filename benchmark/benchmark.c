@@ -44,10 +44,12 @@ int main() {
                                      HMM_V3(0.0f, 0.0f, 1.0f));
     
     HMM_Mat4 perspective = HMM_Perspective_LH_NO(60.0f, 16.0f/9.0f, 0.001, 100.0f);
-    volatile HMM_Vec4 *transformed = calloc(pos_count, sizeof(HMM_Vec4));
+    HMM_Vec4 *transformed = calloc(pos_count, sizeof(HMM_Vec4));
     assert(transformed);
     
+    int random_x_sum = 0;
     struct timespec start, end;
+    
     clock_gettime(CLOCK_MONOTONIC, &start);
     unsigned long counter = 0;
     do {
@@ -55,10 +57,18 @@ int main() {
             transformed[i] = HMM_MulM4V4(perspective, HMM_MulM4V4(look_at, positions[i]));
         }
         counter++;
+        
+        // The compiler cant optimize out the array writes if we read it
+        random_x_sum += transformed[rand() % pos_count].X;
+        
+        HMM_Vec4 *tmp = transformed;
+        transformed = positions;
+        positions = transformed;
+        
         clock_gettime(CLOCK_MONOTONIC, &end);
     } while (calc_secs(start, end)< 10.0);
     printf("Transformed the model %lu times in 10 seconds\n", counter);
     
     // prevent the compiler from optimizing the array
-    return (int)transformed[rand() % pos_count].X;
+    return random_x_sum;
 }
