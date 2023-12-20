@@ -1,6 +1,6 @@
 ROOT_DIR=..
 
-CFLAGS=-std=c99 -D_POSIX_C_SOURCE=199309L
+CFLAGS=-std=c99 -D_POSIX_C_SOURCE=199309L -fsanitize=address
 BENCH_INC=-I $(ROOT_DIR)/benchmark/include -I $(ROOT_DIR)
 
 .SILENT:
