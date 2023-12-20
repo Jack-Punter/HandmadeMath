@@ -1,19 +1,27 @@
 ROOT_DIR=..
 
-CFLAGS=-std=c99 -D_POSIX_C_SOURCE=199309L -fsanitize=address
+CFLAGS=-std=c99 -D_POSIX_C_SOURCE=199309L
 BENCH_INC=-I $(ROOT_DIR)/benchmark/include -I $(ROOT_DIR)
 
+all: runner
+
+dbg_simd:
+	$(CC) $(CFLAGS) benchmark.c -o dbg_simd.out -g $(BENCH_INC) -lm
+rel_simd:
+	$(CC) $(CFLAGS) benchmark.c -o rel_simd.out -O2 $(BENCH_INC) -lm
+dbg_nonsimd:
+	$(CC) $(CFLAGS) -DHANDMADE_MATH_NO_SIMD -o dbg_nonsimd.out benchmark.c -g $(BENCH_INC) -lm
+rel_nonsimd:
+	$(CC) $(CFLAGS) -DHANDMADE_MATH_NO_SIMD -o rel_nonsimd.out benchmark.c -O2 $(BENCH_INC) -lm
+
 .SILENT:
-benchmark_c: $(ROOT_DIR)/benchmark/benchmark.c
-	echo SIMD Debug
-	$(CC) $(CFLAGS) benchmark.c -g $(BENCH_INC) -lm
-	./a.out
-	echo SIMD Release 
-	$(CC) $(CFLAGS) benchmark.c -O2 $(BENCH_INC) -lm
-	./a.out
-	echo NON-SIMD Debug
-	$(CC) $(CFLAGS) -DHANDMADE_MATH_NO_SIMD benchmark.c -g $(BENCH_INC) -lm
-	./a.out
-	echo NON-SIMD Release 
-	$(CC) $(CFLAGS) -DHANDMADE_MATH_NO_SIMD benchmark.c -O2 $(BENCH_INC) -lm
-	./a.out
+.PHONY:
+runner: dbg_simd rel_simd rel_nonsimd dbg_nonsimd 
+	echo Debug SIMD
+	./dbg_simd.out
+	echo Release SIMD
+	./rel_simd.out
+	echo Debug NONSIMD
+	./dbg_nonsimd.out
+	echo Release NONSIMD
+	./rel_nonsimd.out

@@ -71,7 +71,7 @@ int run_transform_test(const char *obj_file) {
     free(positions);
     free(transformed);
     
-    printf("Transformed %lu times in 10 seconds (%s)\n", counter, obj_file);
+    printf("Transformed %08lu times in 10 seconds (%s)\n", counter, obj_file);
     return random_x_sum;
 }
 
