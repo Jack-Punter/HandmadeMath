@@ -1,7 +1,8 @@
 ROOT_DIR=..
 
-CFLAGS=-std=c99 -D_POSIX_C_SOURCE=199309L
+CFLAGS=-std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -Wno-missing-braces 
 BENCH_INC=-I $(ROOT_DIR)/benchmark/include -I $(ROOT_DIR)
+CC := gcc
 
 all: runner
 
@@ -14,14 +15,16 @@ dbg_nonsimd:
 rel_nonsimd:
 	$(CC) $(CFLAGS) -DHANDMADE_MATH_NO_SIMD -o rel_nonsimd.out benchmark.c -O2 $(BENCH_INC) -lm
 
-.SILENT:
+# .SILENT:
 .PHONY:
 runner: dbg_simd rel_simd rel_nonsimd dbg_nonsimd 
+	echo Building with compiler ${CC}
 	echo Debug SIMD
-	./dbg_simd.out
+	@ ./dbg_simd.out
 	echo Release SIMD
-	./rel_simd.out
+	@ ./rel_simd.out
 	echo Debug NONSIMD
-	./dbg_nonsimd.out
+	@ ./dbg_nonsimd.out
 	echo Release NONSIMD
-	./rel_nonsimd.out
+	@ ./rel_nonsimd.out
+	@ rm *.out
