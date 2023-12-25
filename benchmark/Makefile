@@ -15,7 +15,7 @@ dbg_nonsimd:
 rel_nonsimd:
 	$(CC) $(CFLAGS) -DHANDMADE_MATH_NO_SIMD -o rel_nonsimd.out benchmark.c -O2 $(BENCH_INC) -lm
 
-# .SILENT:
+.SILENT:
 .PHONY:
 runner: dbg_simd rel_simd rel_nonsimd dbg_nonsimd 
 	echo Building with compiler ${CC}

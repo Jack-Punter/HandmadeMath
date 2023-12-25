@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <time.h> 
 #include <unistd.h> 
+#include <float.h>
 
 typedef struct Vec4Array {
     HMM_Vec4 *data;
@@ -65,9 +66,16 @@ int RunTransformTest(const char *obj_file, double duration) {
     struct timespec start, last, end;
     
     double average_time = 0.0;
+    double min_time = DBL_MAX;
+    double max_time = 0.0f;
     clock_gettime(CLOCK_MONOTONIC, &start);
     last = start; 
     unsigned long counter = 0;
+
+    // This is essentially our main loop, eventually I'd like to copy this into a simple
+    // rendering engine and create some kind of scene with a camera following some kind
+    // of path around a scene with a few objects to look at, and create an implementaiton 
+    // that uses GLM and potentially some other common math libs and compare the results.
     do {
         HMM_Vec4 *in_cursor = verts.data;
         HMM_Vec4 *out_cursor = transformed.data;
@@ -77,19 +85,27 @@ int RunTransformTest(const char *obj_file, double duration) {
         counter++;
 
         clock_gettime(CLOCK_MONOTONIC, &end);
-        average_time += CalclateDurationS(last, end);
+        double this_time = CalclateDurationS(last, end);
+        min_time = (min_time < this_time) ? min_time : this_time;
+        max_time = (max_time > this_time) ? max_time : this_time;
+        average_time += this_time;
         last = end;
         
         // The compiler can't optimise the calculation away if it doesn't know
         // what we're going to read
         random_x_sum += transformed.data[rand() % transformed.count].X;
     } while (CalclateDurationS(start, end) < duration);
-    
+
+    // convert summed avarage into average us time
+    average_time *= 1e6 / counter;
+    min_time *= 1e6;
+    max_time *= 1e6;
     DeleteObjMesh(&verts);
     DeleteObjMesh(&transformed);
     
-    printf("Transformed %08lu times and took on average %.3fms per \"frame\" (%s)\n",
-           counter, 1000.0 * (average_time / counter), obj_file);
+    printf("%10lu|%10.3f|%10.3f|%10.3f|%s\n",
+           counter, min_time, max_time, average_time,
+           obj_file + strlen("assets/"));
     return random_x_sum;
 }
 
@@ -97,10 +113,10 @@ int main() {
     int variable = 0;
     double testDuration = 5;
     printf("Running transform test for %.2fs per object:\n", testDuration);
+    printf("%10s|%10s|%10s|%10s|%s\n", "Num Frames", "min us", "max us", "average us", "asset");
     variable += RunTransformTest("assets/suzanne.obj", testDuration);
     variable += RunTransformTest("assets/teapot.obj", testDuration);
     variable += RunTransformTest("assets/stanford-bunny.obj", testDuration);
     variable += RunTransformTest("assets/xyzrgb_dragon.obj", testDuration);
-    printf("Our random result was %d\n", variable);
     return 0;
 }
